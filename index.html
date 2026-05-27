@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Косынка</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="topbar">
+        <div>
+          <h1>Косынка</h1>
+          <p>Solitaire Klondike</p>
+        </div>
+        <div class="stats" aria-live="polite">
+          <span><strong id="moves">0</strong> ходов</span>
+          <span><strong id="time">00:00</strong></span>
+        </div>
+        <button class="new-game" id="new-game" type="button" aria-label="Новая игра">
+          <span aria-hidden="true">↻</span>
+          Новая игра
+        </button>
+      </header>
+
+      <section class="board" aria-label="Игровое поле">
+        <div class="upper-row">
+          <div class="stock-area">
+            <button class="pile stock" id="stock" type="button" aria-label="Взять карту из колоды"></button>
+            <div class="pile waste" id="waste" role="button" tabindex="0" aria-label="Карта сброса"></div>
+          </div>
+          <div class="foundation-area" id="foundations" aria-label="Фундаменты"></div>
+        </div>
+
+        <div class="tableau" id="tableau" aria-label="Столбцы раскладки"></div>
+      </section>
+
+      <section class="status-bar" aria-live="polite">
+        <span id="message">Перетаскивайте карты или кликайте по ним для автопереноса.</span>
+      </section>
+    </main>
+
+    <dialog class="win-dialog" id="win-dialog">
+      <h2>Пасьянс сошелся</h2>
+      <p id="win-summary"></p>
+      <button class="new-game" id="play-again" type="button">Сыграть еще</button>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>
