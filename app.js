@@ -89,13 +89,14 @@ function startTimer() {
   }, 1000);
 }
 
-function render() {
+function render(previousPositions = null) {
   renderStats();
   renderStock();
   renderWaste();
   renderFoundations();
   renderTableau();
   markSelection();
+  if (previousPositions) playCardAnimations(previousPositions);
 }
 
 function renderStats() {
@@ -186,8 +187,10 @@ function createCardElement(card, location) {
 function handleStockClick() {
   startTimer();
   clearSelection();
+  const previousPositions = getCardPositions();
   if (state.stock.length) {
     const card = state.stock.pop();
+    previousPositions.set(card.id, el.stock.getBoundingClientRect());
     card.faceUp = true;
     state.waste.push(card);
     countMove();
@@ -198,7 +201,7 @@ function handleStockClick() {
     countMove();
     setMessage("Сброс вернулся в колоду.");
   }
-  render();
+  render(previousPositions);
 }
 
 function handleCardClick(event, location) {
@@ -284,9 +287,10 @@ function moveSelectionToColumn(columnIndex) {
     render();
     return false;
   }
+  const previousPositions = getCardPositions();
   removeSelectedCards();
   state.tableau[columnIndex].push(...moving);
-  afterMove("Карта перенесена в столбец.");
+  afterMove("Карта перенесена в столбец.", previousPositions);
   return true;
 }
 
@@ -298,9 +302,10 @@ function moveSelectionToFoundation(foundation) {
     render();
     return false;
   }
+  const previousPositions = getCardPositions();
   removeSelectedCards();
   state.foundations[foundation].push(moving[0]);
-  afterMove("Карта перенесена на фундамент.");
+  afterMove("Карта перенесена на фундамент.", previousPositions);
   return true;
 }
 
@@ -318,14 +323,44 @@ function autoMove(location) {
   if (columnIndex >= 0) moveSelectionToColumn(columnIndex);
 }
 
-function afterMove(message) {
+function afterMove(message, previousPositions) {
   startTimer();
   countMove();
   revealTableauCards();
   clearSelection();
   setMessage(message);
-  render();
+  render(previousPositions);
   checkWin();
+}
+
+function getCardPositions() {
+  const positions = new Map();
+  document.querySelectorAll(".card[data-card-id]").forEach((card) => {
+    positions.set(card.dataset.cardId, card.getBoundingClientRect());
+  });
+  return positions;
+}
+
+function playCardAnimations(previousPositions) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  document.querySelectorAll(".card[data-card-id]").forEach((card) => {
+    const previous = previousPositions.get(card.dataset.cardId);
+    if (!previous) return;
+
+    const current = card.getBoundingClientRect();
+    const deltaX = previous.left - current.left;
+    const deltaY = previous.top - current.top;
+    if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) return;
+
+    card.animate(
+      [
+        { transform: `translate(${deltaX}px, ${deltaY}px)`, easing: "cubic-bezier(.2,.8,.2,1)" },
+        { transform: "translate(0, 0)", easing: "cubic-bezier(.2,.8,.2,1)" },
+      ],
+      { duration: 260, fill: "both" },
+    );
+  });
 }
 
 function revealTableauCards() {
