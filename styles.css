@@ -4,15 +4,16 @@
   --felt-light: #158664;
   --ink: #14211c;
   --muted: #d4eee5;
-  --card: #fbfbf7;
-  --card-edge: #d6d4c8;
+  --card: #fffdfa;
+  --card-edge: #d9d3c4;
   --red: #b92735;
   --black: #1e2528;
   --gold: #f2c35d;
   --shadow: 0 12px 28px rgba(6, 32, 25, 0.32);
-  --card-w: clamp(58px, 10.2vw, 104px);
-  --card-h: calc(var(--card-w) * 1.42);
-  --stack-gap: clamp(20px, 3.5vw, 34px);
+  --card-w: clamp(66px, 10.8vw, 124px);
+  --card-h: calc(var(--card-w) * 1.43);
+  --card-pad: clamp(7px, 0.9vw, 12px);
+  --stack-gap: clamp(22px, 3.7vw, 40px);
 }
 
 * {
@@ -135,7 +136,7 @@ h1 {
 .tableau {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, var(--card-w)));
-  gap: clamp(8px, 1.7vw, 18px);
+  gap: clamp(8px, 1.45vw, 18px);
   align-items: start;
   justify-content: space-between;
 }
@@ -145,7 +146,7 @@ h1 {
   width: var(--card-w);
   min-height: var(--card-h);
   border: 2px dashed rgba(255, 255, 255, 0.34);
-  border-radius: 8px;
+  border-radius: clamp(8px, 1.1vw, 13px);
   position: relative;
 }
 
@@ -175,29 +176,34 @@ h1 {
 .stock.has-cards {
   border-style: solid;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 26%),
-    repeating-linear-gradient(45deg, #144f84 0 8px, #103b63 8px 16px);
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.16) 0 19%, transparent 20% 100%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 30%),
+    repeating-linear-gradient(45deg, #164f83 0 9px, #10395f 9px 18px);
   box-shadow: var(--shadow);
 }
 
 .stock.has-cards::after {
   content: "";
-  inset: 10px;
+  inset: clamp(8px, 1.1vw, 14px);
   border: 2px solid rgba(255, 255, 255, 0.7);
-  border-radius: 6px;
+  border-radius: clamp(6px, 0.9vw, 10px);
 }
 
 .card {
   width: var(--card-w);
   height: var(--card-h);
   border: 1px solid var(--card-edge);
-  border-radius: 8px;
-  padding: 7px;
+  border-radius: clamp(8px, 1.1vw, 13px);
+  padding: var(--card-pad);
   display: grid;
   grid-template-rows: auto 1fr auto;
-  background: var(--card);
+  background:
+    radial-gradient(circle at 50% 47%, rgba(214, 196, 145, 0.1), transparent 38%),
+    linear-gradient(145deg, #ffffff, var(--card));
   color: var(--black);
-  box-shadow: var(--shadow);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.74),
+    0 12px 24px rgba(6, 32, 25, 0.28);
   position: absolute;
   left: -2px;
   top: -2px;
@@ -217,8 +223,9 @@ h1 {
 .card.face-down {
   cursor: default;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 28%),
-    repeating-linear-gradient(45deg, #184f83 0 7px, #0f3a61 7px 14px);
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.18) 0 18%, transparent 19% 100%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 30%),
+    repeating-linear-gradient(45deg, #195589 0 8px, #103a61 8px 16px);
 }
 
 .card.face-down .rank,
@@ -233,25 +240,26 @@ h1 {
 }
 
 .card.selected {
-  outline: 3px solid var(--gold);
-  outline-offset: 2px;
+  outline: clamp(2px, 0.35vw, 4px) solid var(--gold);
+  outline-offset: clamp(2px, 0.25vw, 4px);
 }
 
 .rank {
-  font-size: clamp(15px, 2.4vw, 24px);
+  font-size: clamp(18px, 2.45vw, 30px);
   font-weight: 800;
   line-height: 1;
 }
 
 .pip {
   place-self: center;
-  font-size: clamp(24px, 5.5vw, 54px);
+  font-size: clamp(32px, 5.7vw, 72px);
   line-height: 1;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
 }
 
 .suit {
   place-self: end;
-  font-size: clamp(15px, 2.4vw, 24px);
+  font-size: clamp(18px, 2.45vw, 30px);
   transform: rotate(180deg);
 }
 
@@ -309,8 +317,17 @@ h1 {
 
 @media (max-width: 720px) {
   :root {
-    --card-w: clamp(42px, 12.2vw, 74px);
-    --stack-gap: 24px;
+    --card-w: clamp(40px, 11.9vw, 82px);
+    --card-pad: clamp(5px, 1.3vw, 8px);
+    --stack-gap: clamp(22px, 6vw, 30px);
+  }
+
+  .game-shell {
+    padding-inline: clamp(10px, 3vw, 16px);
+  }
+
+  .tableau {
+    gap: clamp(5px, 1.15vw, 10px);
   }
 
   .topbar {
