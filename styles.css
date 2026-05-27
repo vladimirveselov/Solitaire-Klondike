@@ -168,6 +168,8 @@ h1 {
   color: rgba(255, 255, 255, 0.42);
   font-size: clamp(18px, 3vw, 28px);
   font-weight: 700;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .stock.has-cards {
@@ -199,6 +201,7 @@ h1 {
   position: absolute;
   left: -2px;
   top: -2px;
+  z-index: 2;
   user-select: none;
   cursor: grab;
   transition:
