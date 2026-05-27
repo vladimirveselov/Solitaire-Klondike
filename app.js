@@ -6,19 +6,81 @@ const suits = [
 ];
 const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 
+const translations = {
+  ru: {
+    pageTitle: "Косынка",
+    title: "Косынка",
+    movesLabel: "ходов",
+    newGame: "Новая игра",
+    playAgain: "Сыграть еще",
+    boardLabel: "Игровое поле",
+    stockLabel: "Взять карту из колоды",
+    wasteLabel: "Карта сброса",
+    foundationsLabel: "Фундаменты",
+    tableauLabel: "Столбцы раскладки",
+    wastePlaceholder: "Сброс",
+    stockTitle: (count) => `${count} карт в колоде`,
+    stockReset: "Вернуть сброс в колоду",
+    foundationLabel: (suit) => `Фундамент ${suit}`,
+    hiddenCard: "Закрытая карта",
+    initialMessage: "Перетаскивайте карты или кликайте по ним для автопереноса.",
+    stockDrawn: "Карта открыта из колоды.",
+    wasteReset: "Сброс вернулся в колоду.",
+    cardSelected: "Выбрана карта. Кликните по месту назначения.",
+    invalidTableau: "Сюда карту положить нельзя.",
+    movedToTableau: "Карта перенесена в столбец.",
+    invalidFoundation: "На фундамент можно класть только следующую карту той же масти.",
+    movedToFoundation: "Карта перенесена на фундамент.",
+    winTitle: "Пасьянс сошелся",
+    winSummary: (time, moves) => `Время: ${time}. Ходов: ${moves}.`,
+  },
+  en: {
+    pageTitle: "Klondike Solitaire",
+    title: "Klondike",
+    movesLabel: "moves",
+    newGame: "New game",
+    playAgain: "Play again",
+    boardLabel: "Game board",
+    stockLabel: "Draw a card from the stock",
+    wasteLabel: "Waste pile",
+    foundationsLabel: "Foundations",
+    tableauLabel: "Tableau columns",
+    wastePlaceholder: "Waste",
+    stockTitle: (count) => `${count} cards in stock`,
+    stockReset: "Return waste to stock",
+    foundationLabel: (suit) => `${suit} foundation`,
+    hiddenCard: "Face-down card",
+    initialMessage: "Drag cards or click them for auto-move.",
+    stockDrawn: "Card drawn from the stock.",
+    wasteReset: "Waste returned to the stock.",
+    cardSelected: "Card selected. Click a destination.",
+    invalidTableau: "That card cannot be placed there.",
+    movedToTableau: "Card moved to a column.",
+    invalidFoundation: "Foundations build up by suit, one rank at a time.",
+    movedToFoundation: "Card moved to a foundation.",
+    winTitle: "Solitaire complete",
+    winSummary: (time, moves) => `Time: ${time}. Moves: ${moves}.`,
+  },
+};
+
 const state = {
   stock: [],
   waste: [],
   foundations: { spades: [], hearts: [], diamonds: [], clubs: [] },
   tableau: Array.from({ length: 7 }, () => []),
   selected: null,
+  language: localStorage.getItem("klondike-language") || "ru",
+  messageKey: "initialMessage",
   moves: 0,
   seconds: 0,
   timer: null,
   started: false,
 };
+if (!translations[state.language]) state.language = "ru";
 
 const el = {
+  html: document.documentElement,
+  board: document.querySelector(".board"),
   stock: document.querySelector("#stock"),
   waste: document.querySelector("#waste"),
   foundations: document.querySelector("#foundations"),
@@ -27,10 +89,47 @@ const el = {
   time: document.querySelector("#time"),
   message: document.querySelector("#message"),
   newGame: document.querySelector("#new-game"),
+  languageOptions: document.querySelectorAll(".language-option"),
   playAgain: document.querySelector("#play-again"),
   winDialog: document.querySelector("#win-dialog"),
   winSummary: document.querySelector("#win-summary"),
 };
+
+function t(key, ...args) {
+  const value = translations[state.language][key];
+  return typeof value === "function" ? value(...args) : value;
+}
+
+function setLanguage(language) {
+  if (!translations[language]) return;
+  state.language = language;
+  localStorage.setItem("klondike-language", language);
+  applyLanguageText();
+  setMessage(state.messageKey);
+  if (el.winDialog.open) {
+    el.winSummary.textContent = t("winSummary", el.time.textContent, state.moves);
+  }
+  render();
+}
+
+function applyLanguageText() {
+  el.html.lang = state.language;
+  document.title = t("pageTitle");
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    node.textContent = t(node.dataset.i18n);
+  });
+  el.board.ariaLabel = t("boardLabel");
+  el.stock.ariaLabel = t("stockLabel");
+  el.waste.ariaLabel = t("wasteLabel");
+  el.foundations.ariaLabel = t("foundationsLabel");
+  el.tableau.ariaLabel = t("tableauLabel");
+  el.newGame.ariaLabel = t("newGame");
+  el.languageOptions.forEach((button) => {
+    const isActive = button.dataset.lang === state.language;
+    button.classList.toggle("active", isActive);
+    button.ariaPressed = String(isActive);
+  });
+}
 
 function createDeck() {
   return suits.flatMap((suit) =>
@@ -62,6 +161,7 @@ function startGame() {
   state.foundations = { spades: [], hearts: [], diamonds: [], clubs: [] };
   state.tableau = Array.from({ length: 7 }, () => []);
   state.selected = null;
+  state.messageKey = "initialMessage";
   state.moves = 0;
   state.seconds = 0;
   state.started = false;
@@ -76,7 +176,7 @@ function startGame() {
     }
   }
   state.stock = deck;
-  setMessage("Перетаскивайте карты или кликайте по ним для автопереноса.");
+  setMessage("initialMessage");
   render();
 }
 
@@ -90,6 +190,7 @@ function startTimer() {
 }
 
 function render(previousPositions = null) {
+  applyLanguageText();
   renderStats();
   renderStock();
   renderWaste();
@@ -109,12 +210,12 @@ function renderStats() {
 function renderStock() {
   el.stock.className = `pile stock${state.stock.length ? " has-cards" : ""}`;
   el.stock.dataset.label = state.stock.length ? "" : "↺";
-  el.stock.title = state.stock.length ? `${state.stock.length} карт в колоде` : "Вернуть сброс в колоду";
+  el.stock.title = state.stock.length ? t("stockTitle", state.stock.length) : t("stockReset");
 }
 
 function renderWaste() {
   el.waste.innerHTML = "";
-  el.waste.dataset.label = state.waste.length ? "" : "Сброс";
+  el.waste.dataset.label = state.waste.length ? "" : t("wastePlaceholder");
   const card = topCard(state.waste);
   if (card) el.waste.appendChild(createCardElement(card, { pile: "waste", index: state.waste.length - 1 }));
 }
@@ -128,7 +229,7 @@ function renderFoundations() {
     pile.tabIndex = 0;
     pile.dataset.foundation = suit.foundation;
     pile.dataset.label = suit.symbol;
-    pile.ariaLabel = `Фундамент ${suit.symbol}`;
+    pile.ariaLabel = t("foundationLabel", suit.symbol);
     pile.addEventListener("click", () => handleFoundationClick(suit.foundation));
     pile.addEventListener("dragover", allowDrop);
     pile.addEventListener("dragleave", clearDrop);
@@ -168,7 +269,7 @@ function createCardElement(card, location) {
   button.dataset.cardId = card.id;
   button.dataset.location = JSON.stringify(location);
   button.draggable = card.faceUp;
-  button.ariaLabel = card.faceUp ? `${card.rank} ${card.suit}` : "Закрытая карта";
+  button.ariaLabel = card.faceUp ? `${card.rank} ${card.suit}` : t("hiddenCard");
   button.innerHTML = `
     <span class="rank">${card.rank}</span>
     <span class="pip">${card.suit}</span>
@@ -194,12 +295,12 @@ function handleStockClick() {
     card.faceUp = true;
     state.waste.push(card);
     countMove();
-    setMessage("Карта открыта из колоды.");
+    setMessage("stockDrawn");
   } else if (state.waste.length) {
     state.stock = state.waste.reverse().map((card) => ({ ...card, faceUp: false }));
     state.waste = [];
     countMove();
-    setMessage("Сброс вернулся в колоду.");
+    setMessage("wasteReset");
   }
   render(previousPositions);
 }
@@ -218,7 +319,7 @@ function handleCardClick(event, location) {
   }
 
   state.selected = location;
-  setMessage("Выбрана карта. Кликните по месту назначения.");
+  setMessage("cardSelected");
   render();
 }
 
@@ -282,7 +383,7 @@ function readDragLocation(event) {
 function moveSelectionToColumn(columnIndex) {
   const moving = selectedCards();
   if (!moving.length || !canPlaceOnTableau(moving[0], state.tableau[columnIndex])) {
-    setMessage("Сюда карту положить нельзя.");
+    setMessage("invalidTableau");
     clearSelection();
     render();
     return false;
@@ -290,14 +391,14 @@ function moveSelectionToColumn(columnIndex) {
   const previousPositions = getCardPositions();
   removeSelectedCards();
   state.tableau[columnIndex].push(...moving);
-  afterMove("Карта перенесена в столбец.", previousPositions);
+  afterMove("movedToTableau", previousPositions);
   return true;
 }
 
 function moveSelectionToFoundation(foundation) {
   const moving = selectedCards();
   if (moving.length !== 1 || !canPlaceOnFoundation(moving[0], foundation)) {
-    setMessage("На фундамент можно класть только следующую карту той же масти.");
+    setMessage("invalidFoundation");
     clearSelection();
     render();
     return false;
@@ -305,7 +406,7 @@ function moveSelectionToFoundation(foundation) {
   const previousPositions = getCardPositions();
   removeSelectedCards();
   state.foundations[foundation].push(moving[0]);
-  afterMove("Карта перенесена на фундамент.", previousPositions);
+  afterMove("movedToFoundation", previousPositions);
   return true;
 }
 
@@ -323,12 +424,12 @@ function autoMove(location) {
   if (columnIndex >= 0) moveSelectionToColumn(columnIndex);
 }
 
-function afterMove(message, previousPositions) {
+function afterMove(messageKey, previousPositions) {
   startTimer();
   countMove();
   revealTableauCards();
   clearSelection();
-  setMessage(message);
+  setMessage(messageKey);
   render(previousPositions);
   checkWin();
 }
@@ -427,20 +528,24 @@ function markSelection() {
   });
 }
 
-function setMessage(text) {
-  el.message.textContent = text;
+function setMessage(messageKey) {
+  state.messageKey = messageKey;
+  el.message.textContent = t(messageKey);
 }
 
 function checkWin() {
   const complete = Object.values(state.foundations).every((foundation) => foundation.length === 13);
   if (!complete) return;
   clearInterval(state.timer);
-  el.winSummary.textContent = `Время: ${el.time.textContent}. Ходов: ${state.moves}.`;
+  el.winSummary.textContent = t("winSummary", el.time.textContent, state.moves);
   el.winDialog.showModal();
 }
 
 el.stock.addEventListener("click", handleStockClick);
 el.newGame.addEventListener("click", startGame);
+el.languageOptions.forEach((button) => {
+  button.addEventListener("click", () => setLanguage(button.dataset.lang));
+});
 el.playAgain.addEventListener("click", () => {
   el.winDialog.close();
   startGame();

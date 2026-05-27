@@ -10,16 +10,20 @@
     <main class="game-shell">
       <header class="topbar">
         <div>
-          <h1>Косынка</h1>
+          <h1 data-i18n="title">Косынка</h1>
           <p>Solitaire Klondike</p>
         </div>
         <div class="stats" aria-live="polite">
-          <span><strong id="moves">0</strong> ходов</span>
+          <span><strong id="moves">0</strong> <span data-i18n="movesLabel">ходов</span></span>
           <span><strong id="time">00:00</strong></span>
+        </div>
+        <div class="language-switch" role="group" aria-label="Language">
+          <button class="language-option active" type="button" data-lang="ru">RU</button>
+          <button class="language-option" type="button" data-lang="en">EN</button>
         </div>
         <button class="new-game" id="new-game" type="button" aria-label="Новая игра">
           <span aria-hidden="true">↻</span>
-          Новая игра
+          <span data-i18n="newGame">Новая игра</span>
         </button>
       </header>
 
@@ -41,9 +45,9 @@
     </main>
 
     <dialog class="win-dialog" id="win-dialog">
-      <h2>Пасьянс сошелся</h2>
+      <h2 data-i18n="winTitle">Пасьянс сошелся</h2>
       <p id="win-summary"></p>
-      <button class="new-game" id="play-again" type="button">Сыграть еще</button>
+      <button class="new-game" id="play-again" type="button" data-i18n="playAgain">Сыграть еще</button>
     </dialog>
 
     <script src="app.js"></script>

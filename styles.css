@@ -48,7 +48,7 @@ button {
 
 .topbar {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto auto auto;
   align-items: center;
   gap: 16px;
 }
@@ -112,6 +112,34 @@ h1 {
 
 .new-game:hover {
   filter: brightness(1.05);
+}
+
+.language-switch {
+  min-height: 42px;
+  display: inline-grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(5, 41, 31, 0.34);
+  backdrop-filter: blur(8px);
+}
+
+.language-option {
+  min-width: 44px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 10px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.language-option.active {
+  color: #172118;
+  background: #fffdfa;
+  box-shadow: 0 4px 10px rgba(6, 32, 25, 0.22);
 }
 
 .board {
@@ -340,7 +368,8 @@ h1 {
   }
 
   .stats span,
-  .new-game {
+  .new-game,
+  .language-switch {
     flex: 1;
   }
 
