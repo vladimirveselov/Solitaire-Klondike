@@ -75,6 +75,7 @@ const state = {
   seconds: 0,
   timer: null,
   started: false,
+  won: false,
 };
 if (!translations[state.language]) state.language = "ru";
 
@@ -165,6 +166,8 @@ function startGame() {
   state.moves = 0;
   state.seconds = 0;
   state.started = false;
+  state.won = false;
+  document.querySelectorAll(".win-burst").forEach((burst) => burst.remove());
   clearInterval(state.timer);
   state.timer = null;
 
@@ -535,10 +538,36 @@ function setMessage(messageKey) {
 
 function checkWin() {
   const complete = Object.values(state.foundations).every((foundation) => foundation.length === 13);
-  if (!complete) return;
+  if (!complete || state.won) return;
+  state.won = true;
   clearInterval(state.timer);
   el.winSummary.textContent = t("winSummary", el.time.textContent, state.moves);
   el.winDialog.showModal();
+  playWinAnimation();
+}
+
+function playWinAnimation() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const burst = document.createElement("div");
+  burst.className = "win-burst";
+  burst.ariaHidden = "true";
+
+  const colors = ["#f2c35d", "#ffffff", "#b92735", "#1fa77e", "#2d78bd"];
+  for (let i = 0; i < 54; i += 1) {
+    const piece = document.createElement("span");
+    piece.className = "confetti";
+    piece.style.setProperty("--x", `${Math.random() * 100}vw`);
+    piece.style.setProperty("--drift", `${Math.random() * 180 - 90}px`);
+    piece.style.setProperty("--delay", `${Math.random() * 0.55}s`);
+    piece.style.setProperty("--duration", `${2.2 + Math.random() * 1.4}s`);
+    piece.style.setProperty("--spin", `${180 + Math.random() * 540}deg`);
+    piece.style.background = colors[i % colors.length];
+    burst.appendChild(piece);
+  }
+
+  el.winDialog.appendChild(burst);
+  window.setTimeout(() => burst.remove(), 4200);
 }
 
 el.stock.addEventListener("click", handleStockClick);
